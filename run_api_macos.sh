@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+export ACESTEP_LM_BACKEND="mlx"
+export TOKENIZERS_PARALLELISM="false"
+export ACESTEP_INIT_LLM="auto"
+export ACESTEP_OFFLOAD_TO_CPU="false"
+export ACESTEP_OFFLOAD_DIT_TO_CPU="false"
+export ACESTEP_USE_MLX_DIT="false"
+export ACESTEP_MLX_VAE_CHUNK="192"
+export ACESTEP_MLX_VAE="0"
+export ACESTEP_LM_MODEL_PATH="acestep-5Hz-lm-0.6B"
+export ACESTEP_DOWNLOAD_SOURCE="modelscope"
+export ACESTEP_CHECKPOINTS_DIR="/Users/anshi/Doubao/chats/2026-09-12/new-chat-1/ACE-Step-1.5/checkpoints"
+export MODELSCOPE_CACHE="/Volumes/ssd/ace-step/ms-cache"
+export HF_HOME="/Users/anshi/Doubao/chats/2026-09-12/new-chat-1/.hf-cache"
+export HUGGINGFACE_HUB_CACHE="/Users/anshi/Doubao/chats/2026-09-12/new-chat-1/.hf-cache/hub"
+export UV_CACHE_DIR="/Users/anshi/Doubao/chats/2026-09-12/new-chat-1/.uv-cache"
+export UV_PYTHON_INSTALL_DIR="/Users/anshi/Doubao/chats/2026-09-12/new-chat-1/.uv-pythons"
+export PATH="/Users/anshi/Doubao/chats/2026-09-12/new-chat-1/.uv:$PATH"
+exec .venv/bin/python -m acestep.api_server --host 127.0.0.1 --port 8001 --lm-model-path acestep-5Hz-lm-0.6B --download-source modelscope

@@ -1,5 +1,6 @@
 """VAE decode orchestration helpers for tiled latent-to-audio conversion."""
 
+import os
 from typing import Optional
 
 import torch
@@ -37,7 +38,8 @@ class VaeDecodeMixin:
             Decoded waveform tensor shaped ``[batch, audio_channels, samples]``.
         """
         # ---- MLX fast path (macOS Apple Silicon) ----
-        if self.use_mlx_vae and self.mlx_vae is not None:
+        if (self.use_mlx_vae and self.mlx_vae is not None
+                and os.environ.get("ACESTEP_MLX_VAE", "1").lower() not in ("0", "false", "no")):
             try:
                 result = self._mlx_vae_decode(latents)
                 return result

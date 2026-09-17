@@ -304,15 +304,17 @@ SUBMODEL_REGISTRY: Dict[str, str] = {
 }
 
 # Components that come from the main model repo (ACE-Step/Ace-Step1.5)
+# NOTE (local Mac M4/16GB adaptation): the 1.7B LM is intentionally not
+# required here; the lightweight 0.6B LM is downloaded separately to save
+# ~3.5GB disk and fit in 16GB unified memory.
 MAIN_MODEL_COMPONENTS = [
     "acestep-v15-turbo",      # Default DiT model
     "vae",                     # VAE for audio encoding/decoding
     "Qwen3-Embedding-0.6B",    # Text encoder
-    "acestep-5Hz-lm-1.7B",     # Default LM model (1.7B)
 ]
 
 # Default LM model (included in main model)
-DEFAULT_LM_MODEL = "acestep-5Hz-lm-1.7B"
+DEFAULT_LM_MODEL = "acestep-5Hz-lm-0.6B"
 
 # Optional community-finetuned VAE checkpoints. Each entry maps a short
 # variant id (also used as the on-disk subdirectory under

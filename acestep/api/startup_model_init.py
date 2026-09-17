@@ -60,6 +60,10 @@ def do_model_initialization(
 
     offload_dit_to_cpu = env_bool("ACESTEP_OFFLOAD_DIT_TO_CPU", False)
     compile_model = env_bool("ACESTEP_COMPILE_MODEL", False)
+    # LOCAL ADAPTATION (Mac mini M4 / 16GB): allow disabling the native MLX
+    # DiT decoder so only one DiT copy (PyTorch/MPS) stays resident; the MLX
+    # decoder would double DiT memory and cause OOM when the 0.6B LM loads.
+    use_mlx_dit = env_bool("ACESTEP_USE_MLX_DIT", True)
 
     checkpoint_dir = os.path.join(project_root, "checkpoints")
     os.makedirs(checkpoint_dir, exist_ok=True)
@@ -85,6 +89,7 @@ def do_model_initialization(
         compile_model=compile_model,
         offload_to_cpu=offload_to_cpu,
         offload_dit_to_cpu=offload_dit_to_cpu,
+        use_mlx_dit=use_mlx_dit,
     )
     if not ok:
         app.state._init_error = status_msg
@@ -103,6 +108,7 @@ def do_model_initialization(
         "compile_model": compile_model,
         "offload_to_cpu": offload_to_cpu,
         "offload_dit_to_cpu": offload_dit_to_cpu,
+        "use_mlx_dit": use_mlx_dit,
     }
     app.state._checkpoint_dir = checkpoint_dir
     app.state._ensure_model_downloaded = ensure_model_downloaded
