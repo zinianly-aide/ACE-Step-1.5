@@ -1,5 +1,6 @@
 """Runtime setup helpers for initialization orchestration."""
 
+import os
 from typing import Any, Optional, Tuple
 
 import torch
@@ -136,7 +137,17 @@ class InitServiceSetupMixin:
             self.use_mlx_dit = False
 
         mlx_vae_status = "Disabled"
-        if device in ("mps", "cpu"):
+        mlx_vae_env = os.environ.get("ACESTEP_MLX_VAE", "1").lower()
+        mlx_vae_requested = mlx_vae_env not in ("0", "false", "no")
+        if not mlx_vae_requested:
+            # Match the decode-path guard in vae_decode.py: when
+            # ACESTEP_MLX_VAE=0/false, the native MLX VAE copy must not be
+            # converted, compiled or kept resident (PyTorch/MPS tiled decode
+            # is used instead). This keeps memory usage minimal on 16GB parts.
+            mlx_vae_status = "Disabled by user (ACESTEP_MLX_VAE=0)"
+            self.mlx_vae = None
+            self.use_mlx_vae = False
+        elif device in ("mps", "cpu"):
             mlx_vae_ok = self._init_mlx_vae()
             mlx_vae_status = "Active (native MLX)" if mlx_vae_ok else "Unavailable (PyTorch fallback)"
         else:
