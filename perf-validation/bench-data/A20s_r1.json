@@ -1,0 +1,21 @@
+{
+  "ok": false,
+  "tag": "A20s_r1",
+  "error": "job f1b9b299-913d-4f42-abd1-d1e69500cdc9 did not complete in timeout; last status=1",
+  "wall_s": 922.026,
+  "health": {
+    "data": {
+      "status": "ok",
+      "service": "ACE-Step API",
+      "version": "1.0",
+      "models_initialized": true,
+      "llm_initialized": true,
+      "loaded_model": "acestep-v15-turbo",
+      "loaded_lm_model": "acestep-5Hz-lm-0.6B"
+    },
+    "code": 200,
+    "error": null,
+    "timestamp": 1789748354141,
+    "extra": null
+  }
+}
