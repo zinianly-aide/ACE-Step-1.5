@@ -38,25 +38,30 @@ def do_model_initialization(
     auto_offload = gpu_memory_gb > 0 and gpu_memory_gb < VRAM_AUTO_OFFLOAD_THRESHOLD_GB
 
     print("[API Server] Initializing models...")
-    if auto_offload:
-        print("[API Server] Auto-enabling CPU offload (GPU < 16GB)")
+
+    # Resolve the final offload value BEFORE logging: the auto-detection hint
+    # must never be printed when an explicit env override pins the opposite.
+    offload_to_cpu_env = os.getenv("ACESTEP_OFFLOAD_TO_CPU")
+    if offload_to_cpu_env is not None:
+        offload_to_cpu = env_bool("ACESTEP_OFFLOAD_TO_CPU", False)
+        if offload_to_cpu:
+            print("[API Server] CPU offload: enabled by explicit env override")
+        else:
+            print("[API Server] CPU offload: disabled by explicit env override")
+    elif auto_offload:
+        offload_to_cpu = True
+        print("[API Server] CPU offload: auto-enabled (GPU < 16GB)")
     elif gpu_memory_gb > 0:
-        print("[API Server] CPU offload disabled by default (GPU >= 16GB)")
+        offload_to_cpu = False
+        print("[API Server] CPU offload: disabled by auto-detection (GPU >= 16GB)")
     else:
+        offload_to_cpu = False
         print("[API Server] No GPU detected, running on CPU")
 
     project_root = get_project_root()
     config_path = os.getenv("ACESTEP_CONFIG_PATH", "acestep-v15-turbo")
     device = os.getenv("ACESTEP_DEVICE", "auto")
     use_flash_attention = env_bool("ACESTEP_USE_FLASH_ATTENTION", True)
-
-    offload_to_cpu_env = os.getenv("ACESTEP_OFFLOAD_TO_CPU")
-    if offload_to_cpu_env is not None:
-        offload_to_cpu = env_bool("ACESTEP_OFFLOAD_TO_CPU", False)
-    else:
-        offload_to_cpu = auto_offload
-        if auto_offload:
-            print("[API Server] Auto-setting offload_to_cpu=True based on GPU memory")
 
     offload_dit_to_cpu = env_bool("ACESTEP_OFFLOAD_DIT_TO_CPU", False)
     compile_model = env_bool("ACESTEP_COMPILE_MODEL", False)

@@ -7,6 +7,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import ANY, MagicMock, patch
 
+from acestep.api.startup_model_init import do_model_initialization
 from acestep.api.startup_model_init import initialize_models_at_startup
 
 
@@ -202,6 +203,93 @@ class StartupModelInitTests(unittest.TestCase):
 
         mock_initialize_llm_at_startup.assert_not_called()
         self.assertEqual("boom", app.state._init_error)
+
+
+class StartupOffloadLogTests(unittest.TestCase):
+    """The printed offload state must always match the value actually passed to
+    initialize_service (regression: "Auto-enabling CPU offload" was printed on
+    <16GB GPUs even when ACESTEP_OFFLOAD_TO_CPU=false pinned the behavior)."""
+
+    def _run(self, env: dict, gpu_memory_gb: float) -> tuple[list[str], MagicMock]:
+        captured: list[str] = []
+        app = SimpleNamespace(
+            state=SimpleNamespace(
+                gpu_config=SimpleNamespace(
+                    gpu_memory_gb=gpu_memory_gb,
+                    init_lm_default=True,
+                    tier="tier4",
+                    max_duration_with_lm=480,
+                    max_duration_without_lm=600,
+                    max_batch_size_with_lm=2,
+                    max_batch_size_without_lm=4,
+                    available_lm_models=["acestep-5Hz-lm-0.6B"],
+                ),
+            )
+        )
+        handler = MagicMock()
+        handler.initialize_service.return_value = ("ok", True)
+        llm_handler = MagicMock()
+        llm_handler.initialize.return_value = ("ok", True)
+
+        def _env_bool(name: str, default: bool) -> bool:
+            raw = env.get(name)
+            if raw is None:
+                return default
+            return str(raw).lower() in ("1", "true", "yes", "on")
+
+        def _getenv(name: str, default=None):
+            return env.get(name, default)
+
+        with patch.dict(os.environ, {}, clear=True):
+            with patch("acestep.api.startup_model_init.os.getenv", side_effect=_getenv):
+                with patch("builtins.print", side_effect=lambda *a: captured.append(" ".join(str(x) for x in a))):
+                    do_model_initialization(
+                        app=app,
+                        handler=handler,
+                        llm_handler=llm_handler,
+                        handler2=None,
+                        handler3=None,
+                        config_path2=None,
+                        config_path3=None,
+                        get_project_root=MagicMock(return_value="/tmp/proj"),
+                        get_model_name=MagicMock(return_value="acestep-v15-turbo"),
+                        ensure_model_downloaded=MagicMock(return_value="/tmp/proj/checkpoints"),
+                        env_bool=_env_bool,
+                    )
+        return captured, handler
+
+    def test_env_false_on_small_gpu_disables_and_logs_override(self) -> None:
+        """Explicit false must disable offload and log override (never auto)."""
+        captured, handler = self._run({"ACESTEP_OFFLOAD_TO_CPU": "false"}, gpu_memory_gb=11.8)
+        self.assertFalse(handler.initialize_service.call_args.kwargs["offload_to_cpu"])
+        joined = "\n".join(captured)
+        self.assertIn("CPU offload: disabled by explicit env override", joined)
+        self.assertNotIn("Auto-enabling", joined)
+        self.assertNotIn("auto-enabled", joined)
+
+    def test_env_true_on_large_gpu_enables_and_logs_override(self) -> None:
+        """Explicit true must enable offload and log override."""
+        captured, handler = self._run({"ACESTEP_OFFLOAD_TO_CPU": "true"}, gpu_memory_gb=24.0)
+        self.assertTrue(handler.initialize_service.call_args.kwargs["offload_to_cpu"])
+        self.assertIn("CPU offload: enabled by explicit env override", "\n".join(captured))
+
+    def test_no_env_small_gpu_keeps_auto_enable(self) -> None:
+        """Without env override a <16GB GPU keeps the auto-offload path."""
+        captured, handler = self._run({}, gpu_memory_gb=11.8)
+        self.assertTrue(handler.initialize_service.call_args.kwargs["offload_to_cpu"])
+        self.assertIn("CPU offload: auto-enabled (GPU < 16GB)", "\n".join(captured))
+
+    def test_no_env_large_gpu_disabled_by_detection(self) -> None:
+        """Without env override a >=16GB GPU disables offload via detection."""
+        captured, handler = self._run({}, gpu_memory_gb=32.0)
+        self.assertFalse(handler.initialize_service.call_args.kwargs["offload_to_cpu"])
+        self.assertIn("CPU offload: disabled by auto-detection (GPU >= 16GB)", "\n".join(captured))
+
+    def test_no_gpu_runs_on_cpu(self) -> None:
+        """Zero GPU memory reports CPU-only mode with offload disabled."""
+        captured, handler = self._run({}, gpu_memory_gb=0.0)
+        self.assertFalse(handler.initialize_service.call_args.kwargs["offload_to_cpu"])
+        self.assertIn("No GPU detected, running on CPU", "\n".join(captured))
 
 
 if __name__ == "__main__":
