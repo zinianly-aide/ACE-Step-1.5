@@ -1,0 +1,59 @@
+{
+  "ok": true,
+  "tag": "fixed30_fine1",
+  "task_id": "02254ba8-8710-4685-b292-8c8e016c038c",
+  "requested_duration": 30.0,
+  "seed": 523,
+  "wall_s": 89.523,
+  "submit_s": 0.006,
+  "time_costs": {},
+  "generation_info": "**🎵 Total generation time (1 song): 72.06s**\n- 72.06s per song\n- LM phase (1 song): 12.05s\n- DiT phase (1 song): 60.01s",
+  "audio_paths": [],
+  "file": "/v1/audio?path=%2FUsers%2Fanshi%2FDoubao%2Fchats%2F2026-09-12%2Fnew-chat-1%2FACE-Step-1.5%2F.cache%2Facestep%2Ftmp%2Fapi_audio%2F18e8af03-6cea-5c9c-3b20-b04a4e7b2a57.mp3",
+  "stage": "succeeded",
+  "progress": 1.0,
+  "metas": {
+    "bpm": 100,
+    "duration": 30.0,
+    "genres": "N/A",
+    "keyscale": "G major",
+    "timesignature": "4",
+    "prompt": "Deep ocean waves, cinematic epic orchestral atmosphere, wind and sea, no vocals",
+    "lyrics": ""
+  },
+  "status_message": "",
+  "health": {
+    "data": {
+      "status": "ok",
+      "service": "ACE-Step API",
+      "version": "1.0",
+      "models_initialized": true,
+      "llm_initialized": true,
+      "loaded_model": "acestep-v15-turbo",
+      "loaded_lm_model": "acestep-5Hz-lm-0.6B"
+    },
+    "code": 200,
+    "error": null,
+    "timestamp": 1789773971083,
+    "extra": null
+  },
+  "result_keys": [
+    "create_time",
+    "dit_model",
+    "env",
+    "file",
+    "generation_info",
+    "lm_model",
+    "lyrics",
+    "metas",
+    "progress",
+    "progress_text",
+    "prompt",
+    "result",
+    "seed_value",
+    "stage",
+    "status",
+    "task_id",
+    "wave"
+  ]
+}
