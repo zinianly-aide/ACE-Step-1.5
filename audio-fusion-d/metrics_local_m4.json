@@ -1,0 +1,37 @@
+{
+  "source_amigo_duration_s": 62.57068,
+  "intro_s": 10,
+  "amigo_start_s": 10,
+  "amigo_end_s": 72.57068,
+  "crossfade_start_s": 69.1,
+  "storm_full_s": 72.57068,
+  "music_end_s": 180,
+  "master": {
+    "music": {
+      "before": {
+        "lufs": -15.15,
+        "true_peak_dbtp": -1,
+        "lra": 7.8
+      },
+      "applied_gain_db": -0.85,
+      "after": {
+        "lufs": -16,
+        "true_peak_dbtp": -1.85,
+        "lra": 7.8
+      }
+    },
+    "with_voice": {
+      "before": {
+        "lufs": -15.11,
+        "true_peak_dbtp": -1,
+        "lra": 6.8
+      },
+      "applied_gain_db": -0.89,
+      "after": {
+        "lufs": -15.99,
+        "true_peak_dbtp": -1.89,
+        "lra": 6.8
+      }
+    }
+  }
+}
